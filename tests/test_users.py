@@ -1,5 +1,4 @@
 from app import schemas
-from .database import session, client
 from datetime import datetime
 
 def test_create_user(client):
