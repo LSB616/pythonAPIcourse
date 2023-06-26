@@ -15,7 +15,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 #creates a session class which will delete old tables first, create fresh tables, run the tests therefore preventing errors from duplicate entries. 
 # Also, allows you to include -x statement in pytest so that tables remain for inspection if a failure occurs.
-@pytest.fixture
+#scope="module" allows all tests to be run before test database is dropped. Scope can be changed, see documents.
+
+@pytest.fixture(scope="module")
 def session():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -25,7 +27,7 @@ def session():
     finally:
         db.close()
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def client(session):
     def override_get_db():
         try:

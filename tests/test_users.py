@@ -11,8 +11,11 @@ def test_create_user(client):
     assert type(new_user.created_at) == datetime
 
 def test_create_user_error(client):
+    #tests no data input
     res_no_data = client.post("/users/", json={})
     assert res_no_data.status_code == 422
+    
+    #test incorrect data type
     res_incorrect_type = client.post("/users/", json={"email": 345, "password": True})
     assert res_incorrect_type.status_code == 422
 
@@ -29,8 +32,11 @@ def test_get_user(client):
     assert new_user != comparison_user
 
 def test_get_user_error(client):
+    #tests inexistent user
     res_no_user = client.get("/users/1000/")
     assert res_no_user.status_code == 404
     assert res_no_user.json() == {"detail": "User with ID: 1000 Does Not Exist"}
+
+    #tests incorrect user id format
     res_wrong_data = client.get("/users/asdhgh/")
     assert res_wrong_data.status_code == 422
