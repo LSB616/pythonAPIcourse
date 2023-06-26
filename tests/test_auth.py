@@ -1,6 +1,7 @@
 from app import schemas
 from jose import jwt
 from app.config import settings
+import pytest
 
 def test_login_user(client):
     #create test user
@@ -21,20 +22,17 @@ def test_login_user(client):
 
 
 
+@pytest.mark.parametrize("email, password, status_code",[
+    ("wrongemail@gmail.com", "12345", 403),
+    ("exampleuser@gmail.com", "wrongpassword", 403),
+    ("wrongemail@gmail.com", "wrongpassword", 403),
+    (None, "12345", 422),
+    ("exampleuser@gmail.com", None, 422)
+])
+def test_login_user_error(test_user, client, email, password, status_code):
+    res = client.post("/login", data={"username": email, "password": password})
 
-def test_login_user_error(client):
-    client.post("/users/", json={"email": "clarence@gmail.com", "password": "12345"})
+    assert res.status_code == status_code
 
-    #invalid username/nonexistant user
-    res_invalid_username = client.post("/login", data={"username": "mary@outlook.com", "password": "12345"})
-    assert res_invalid_username.status_code == 403
-    assert res_invalid_username.json() == {"detail": "Invalid Credentials"}
-
-    #invalid password
-    res_invalid_password = client.post("/login", data={"username": "clarence@gmail.com", "password": "not_the_password"})
-    assert res_invalid_password.status_code == 403
-    assert res_invalid_password.json() == {"detail": "Invalid Credentials"}
-
-    #no login data
-    res_invalid_login = client.post("/login", data={"username": "", "password": ""})
-    assert res_invalid_login.status_code == 422
+    if res.status_code == 403:
+        assert res.json().get("detail") == "Invalid Credentials"
