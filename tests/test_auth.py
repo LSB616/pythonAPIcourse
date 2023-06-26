@@ -29,7 +29,7 @@ def test_login_user(client):
     (None, "12345", 422),
     ("exampleuser@gmail.com", None, 422)
 ])
-def test_login_user_error(test_user, client, email, password, status_code):
+def test_login_user_error(client, email, password, status_code):
     res = client.post("/login", data={"username": email, "password": password})
 
     assert res.status_code == status_code
