@@ -12,7 +12,7 @@ SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
 
 #creates a session class which will delete old tables first, create fresh tables, run the tests therefore preventing errors from duplicate entries. 
@@ -93,3 +93,10 @@ def test_posts(test_user, session, test_user_2):
     session.commit()
     posts = session.query(models.Post).all()
     return posts
+
+
+@pytest.fixture(scope="module")
+def test_vote(test_posts, session, test_user):
+    new_vote = models.Vote(post_id=test_posts[3].id, user_id=test_user['id'])
+    session.add(new_vote)
+    session.commit()

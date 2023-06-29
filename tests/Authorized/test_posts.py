@@ -77,12 +77,13 @@ def test_update_post(authorized_client, test_posts):
         "content": "updated content",
         "published": False
     }
-    res = authorized_client.put(f"/posts/{test_posts[1].id}", json=data)
-    updated_post = schemas.Post(**res.json())
+    authorized_client.put(f"/posts/{test_posts[1].id}", json=data)
+    res = authorized_client.get(f"/posts/{test_posts[1].id}")
+    updated_post = schemas.PostOut(**res.json())
     assert res.status_code == 200
-    assert updated_post.title == data['title']
-    assert updated_post.content == data['content']
-    assert updated_post.published == data['published']
+    assert updated_post.Post.title == data['title']
+    assert updated_post.Post.content == data['content']
+    assert updated_post.Post.published == data['published']
 
 def test_update_other_users_post(authorized_client, test_posts):
     data = {
