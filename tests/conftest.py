@@ -40,7 +40,7 @@ def client(session):
     yield TestClient(app)
 
 
-# creates test user and authorization token
+#creates test user
 @pytest.fixture(scope="module")
 def test_user(client):
     user_data = {"email": "exampleuser@gmail.com", "password": "12345"}
@@ -51,22 +51,21 @@ def test_user(client):
     new_user['password'] = user_data['password']
     return new_user
 
+#creates seondary user for error testing
 @pytest.fixture(scope="module")
-def token(test_user):
-    return create_access_token({"user_id": test_user['id']})
+def test_user_2(client):
+    user_data = {"email": "alternativeuser@gmail.com", "password": "12345"}
+    res = client.post("/users/", json=user_data)
+    assert res.status_code == 201
 
-@pytest.fixture(scope="module")
-def authorized_client(client, token):
-    client.headers = {
-        **client.headers,
-        "Authorization": f"Bearer {token}"
-    }
-    return client
+    new_user = res.json()
+    new_user['password'] = user_data['password']
+    return new_user
 
 #Create test posts
 
 @pytest.fixture(scope="module")
-def test_posts(test_user, session):
+def test_posts(test_user, session, test_user_2):
     posts_data = [
         {"title": "1st title",
          "content": "1st content",
@@ -76,7 +75,13 @@ def test_posts(test_user, session):
          "owner_id": test_user['id']},
         {"title": "3rd title",
          "content": "3rd content",
-         "owner_id": test_user['id']}
+         "owner_id": test_user['id']},
+        {"title": "4th title",
+         "content": "4th content",
+         "owner_id": test_user_2['id']},
+        {"title": "5th title",
+         "content": "5th content",
+         "owner_id": test_user_2['id']}
         ]
     
     def create_post_model(post):

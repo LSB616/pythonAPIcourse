@@ -50,6 +50,65 @@ def test_create_post(authorized_client, test_user):
     ("test_post 4", "test_post content 4", "string"),
     (None, None, None),
 ])
+
 def test_create_post_errors(authorized_client, title, content, published):
  res = authorized_client.post("/posts/", json={"title": title, "content": content, "published": published})
  assert res.status_code == 422
+
+
+def test_delete_post(authorized_client, test_posts):
+    res = authorized_client.delete(f"/posts/{test_posts[0].id}")
+    assert res.status_code == 204
+
+def test_delete_post_errors(authorized_client):
+    res_1 = authorized_client.delete("/posts/1000")
+    assert res_1.status_code == 404
+
+    res_2 = authorized_client.delete("/posts/asdfg")
+    assert res_2.status_code == 422
+
+def test_delete_other_users_post(authorized_client):
+    res = authorized_client.delete("/posts/4")
+    assert res.status_code == 403
+
+def test_update_post(authorized_client, test_posts):
+    data = {
+        "title": "updated title",
+        "content": "updated content",
+        "published": False
+    }
+    res = authorized_client.put(f"/posts/{test_posts[1].id}", json=data)
+    updated_post = schemas.Post(**res.json())
+    assert res.status_code == 200
+    assert updated_post.title == data['title']
+    assert updated_post.content == data['content']
+    assert updated_post.published == data['published']
+
+def test_update_other_users_post(authorized_client, test_posts):
+    data = {
+        "title": "updated title",
+        "content": "updated content",
+        "published": False
+    }
+    res = authorized_client.put(f"/posts/{test_posts[3].id}", json=data)
+    assert res.status_code == 403
+
+@pytest.mark.parametrize("title, content, published", [
+(None, "updated content", False),
+("updated title", None, False),
+("updated title", "updated content", "asfgjh"),
+("updated title", "updated content", 123),
+(None, None, None)
+])
+def test_update_post_errors(authorized_client, test_posts, title, content, published):
+    data = {
+        "title": title,
+        "content": content,
+        "published": published
+    }
+    res_1 = authorized_client.put(f"/posts/{test_posts[1].id}", json=data)
+    assert res_1.status_code == 422
+
+    #update non-existant post
+    res_2 = authorized_client.put("/posts/1000", json={"title": "updated title", "content": "updated content", "published": False})
+    assert res_2.status_code == 404
