@@ -26,4 +26,4 @@ app.include_router(vote.router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome To My FASTAPI"}
+    return {"message": "Welcome To My FASTAPI. CI/CD Pipeline Worked!!"}
